@@ -76,6 +76,8 @@ namespace Streamish.Repositories
                                     UserProfileId = DbUtils.GetInt(reader, "CommentUserProfileId")
                                 });
                             }
+
+
                         }
 
                         return videos;
@@ -96,9 +98,11 @@ namespace Streamish.Repositories
                        v.DateCreated AS VideoDateCreated, v.UserProfileId As VideoUserProfileId,
 
                        up.Name, up.Email, up.DateCreated AS UserProfileDateCreated,
-                       up.ImageUrl AS UserProfileImageUrl
-                      From Video v
-                      JOIN UserProfile up ON v.UserProfileId = up.Id
+                       up.ImageUrl AS UserProfileImageUrl,
+                       c.Id AS CommentId, c.Message, c.UserProfileId AS CommentUserProfileId
+                  FROM Video v 
+                       JOIN UserProfile up ON v.UserProfileId = up.Id
+                       LEFT JOIN Comment c on c.VideoId = v.id
                       WHERE v.Id = @Id";
 
                     DbUtils.AddParameter(cmd, "@Id", id);
@@ -107,9 +111,10 @@ namespace Streamish.Repositories
                     {
 
                         Video video = null;
-                        if (reader.Read())
+                        Video existingVideo = null;
+                        while (reader.Read())
                         {
-                            video = new Video()
+                            existingVideo = new Video()
                             {
                                 Id = id,
                                 Title = DbUtils.GetString(reader, "Title"),
@@ -125,9 +130,43 @@ namespace Streamish.Repositories
                                     DateCreated = DbUtils.GetDateTime(reader, "UserProfileDateCreated"),
                                     ImageUrl = DbUtils.GetString(reader, "UserProfileImageUrl"),
                                 },
+                                Comments = new List<Comment>(),
                             };
+                            if (DbUtils.IsNotDbNull(reader, "CommentId"))
+                            {
+                                existingVideo.Comments.Add(new Comment()
+                                {
+                                    Id = DbUtils.GetInt(reader, "CommentId"),
+                                    Message = DbUtils.GetString(reader, "Message"),
+                                    VideoId = id,
+                                    UserProfileId = DbUtils.GetInt(reader, "CommentUserProfileId")
+                                });
+                            }
+                            if (existingVideo != null)
+                            {
+                                video = new Video()
+                                {
+                                    Id = id,
+                                    Title = existingVideo.Title,
+                                    Description = existingVideo.Description,
+                                    DateCreated = existingVideo.DateCreated,
+                                    Url = existingVideo.Url,
+                                    UserProfileId = existingVideo.UserProfileId,
+                                    UserProfile = existingVideo.UserProfile,
+                                    Comments = existingVideo.Comments,
+                                };
+                                if (DbUtils.IsNotDbNull(reader, "CommentId"))
+                                {
+                                    video.Comments.Add(new Comment()
+                                    {
+                                        Id = DbUtils.GetInt(reader, "CommentId"),
+                                        Message = DbUtils.GetString(reader, "Message"),
+                                        VideoId = id,
+                                        UserProfileId = DbUtils.GetInt(reader, "CommentUserProfileId")
+                                    });
+                                }
+                            }
                         }
-
                         return video;
                     }
                 }

@@ -92,10 +92,14 @@ namespace Streamish.Repositories
                 conn.Open();
                 using (var cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"
-                          SELECT Title, Description, Url, DateCreated, UserProfileId
-                            FROM Video
-                           WHERE Id = @Id";
+                    cmd.CommandText = @"SELECT v.Id AS VideoId, v.Title, v.Description, v.Url, 
+                       v.DateCreated AS VideoDateCreated, v.UserProfileId As VideoUserProfileId,
+
+                       up.Name, up.Email, up.DateCreated AS UserProfileDateCreated,
+                       up.ImageUrl AS UserProfileImageUrl
+                      From Video v
+                      JOIN UserProfile up ON v.UserProfileId = up.Id
+                      WHERE v.Id = @Id";
 
                     DbUtils.AddParameter(cmd, "@Id", id);
 
@@ -110,9 +114,17 @@ namespace Streamish.Repositories
                                 Id = id,
                                 Title = DbUtils.GetString(reader, "Title"),
                                 Description = DbUtils.GetString(reader, "Description"),
-                                DateCreated = DbUtils.GetDateTime(reader, "DateCreated"),
+                                DateCreated = DbUtils.GetDateTime(reader, "VideoDateCreated"),
                                 Url = DbUtils.GetString(reader, "Url"),
-                                UserProfileId = DbUtils.GetInt(reader, "UserProfileId"),
+                                UserProfileId = DbUtils.GetInt(reader, "VideoUserProfileId"),
+                                UserProfile = new UserProfile()
+                                {
+                                    Id = DbUtils.GetInt(reader, "VideoUserProfileId"),
+                                    Name = DbUtils.GetString(reader, "Name"),
+                                    Email = DbUtils.GetString(reader, "Email"),
+                                    DateCreated = DbUtils.GetDateTime(reader, "UserProfileDateCreated"),
+                                    ImageUrl = DbUtils.GetString(reader, "UserProfileImageUrl"),
+                                },
                             };
                         }
 

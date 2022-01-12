@@ -30,10 +30,10 @@ namespace Streamish.Controllers
         }
 
         [HttpPost]
-        public IActionResult Post(UserProfile user)
+        public IActionResult Post(UserProfile userProfile)
         {
-            _userRepository.Add(user);
-            return CreatedAtAction("Get", new { id = user.Id }, user);
+            _userRepository.Add(userProfile);
+            return NoContent();
         }
 
         [HttpDelete("{id}")]

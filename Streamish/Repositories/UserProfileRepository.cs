@@ -19,14 +19,14 @@ namespace Streamish.Repositories
                 using (var cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"
-                        INSERT INTO UserProfile (Name, Email, DateCreated, ImageUrl, UserProfileId)
+                        INSERT INTO UserProfile (Name, Email, DateCreated, ImageUrl)
                         OUTPUT INSERTED.ID
-                        VALUES (@Title, @Description, @DateCreated, @Url, @UserProfileId)";
+                        VALUES (@Name, @Email, @DateCreated, @ImageUrl )";
 
                     DbUtils.AddParameter(cmd, "@Name", user.Name);
-                    DbUtils.AddParameter(cmd, "@Description", user.Email);
+                    DbUtils.AddParameter(cmd, "@Email", user.Email);
                     DbUtils.AddParameter(cmd, "@DateCreated", user.DateCreated);
-                    DbUtils.AddParameter(cmd, "@Url", user.ImageUrl);
+                    DbUtils.AddParameter(cmd, "@ImageUrl", user.ImageUrl);
                     user.Id = (int)cmd.ExecuteScalar();
                 }
             }
